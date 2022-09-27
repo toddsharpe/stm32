@@ -42,10 +42,12 @@ Src/syscalls.c
 
 CXX_SOURCES = \
 Src/main.cpp \
-Src/StringPrinter.cpp
+Src/StringPrinter.cpp \
+Src/Rtos_Kernel.cpp
 
 # ASM sources
 ASM_SOURCES =  \
+Src/Interrupts.s \
 Startup/startup_stm32f746zgtx.s
 
 
@@ -60,17 +62,27 @@ CC = $(GCC_PATH)/$(PREFIX)gcc
 CXX = $(GCC_PATH)/$(PREFIX)g++
 AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
 CP = $(GCC_PATH)/$(PREFIX)objcopy
+DMP = $(GCC_PATH)/$(PREFIX)objdump
 SZ = $(GCC_PATH)/$(PREFIX)size
 else
 CC = $(PREFIX)gcc
 CXX = $(PREFIX)g++
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy
+DMP = $(PREFIX)objdump
 SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
  
+ifdef OS
+   RM = del /Q
+else
+   ifeq ($(shell uname), Linux)
+      RM = rm -rf
+   endif
+endif
+
 #######################################
 # CFLAGS
 #######################################
@@ -132,7 +144,7 @@ CXXFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F746ZGTx_FLASH.ld
+LDSCRIPT = STM32F746ZGTX_FLASH.ld
 
 # libraries
 LIBS = -lc -lm -lnosys 
@@ -168,6 +180,8 @@ $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
 	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
+	$(DMP) -S --disassemble $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).disasm
+	$(DMP) -s -j .isr_vector $(BUILD_DIR)/$(TARGET).elf > $(BUILD_DIR)/$(TARGET).isr_vector
 	$(SZ) $@
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
@@ -183,7 +197,7 @@ $(BUILD_DIR):
 # clean up
 #######################################
 clean:
-	-rm -fR $(BUILD_DIR)
+	$(RM) $(BUILD_DIR)
   
 #######################################
 # dependencies

@@ -1,0 +1,24 @@
+https://learn.microsoft.com/en-us/cpp/build/overview-of-arm-abi-conventions?view=msvc-160
+https://devblogs.microsoft.com/oldnewthing/20210622-00/?p=105332
+https://bitbucket.org/csowter/redkernel/src/master/
+
+https://hackaday.com/2021/03/26/bare-metal-stm32-please-mind-the-interrupt-event/
+https://vivonomicon.com/2020/06/28/bare-metal-stm32-programming-part-10-uart-communication/
+https://www.codeinsideout.com/blog/stm32/task-scheduler/#task-table
+
+Params
+r0, r1, r2, r3
+
+Return value
+R0
+
+Calls
+BL/BLX LR - return address
+pop LR->PC
+
+r4-r10 Non-volatile
+r11 - frame pointer
+r12 - scratch (volatile)
+r13 - SP
+R14 - LR
+R15 - PC

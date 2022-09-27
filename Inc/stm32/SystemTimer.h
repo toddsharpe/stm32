@@ -27,8 +27,18 @@ public:
         const uint32_t ticks = SystemCoreClock / (1000U / m_freq);
         SysTick->LOAD = (uint32_t)(ticks - 1UL);
         SysTick->VAL = 0;
-        SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk   | SysTick_CTRL_ENABLE_Msk;
+        SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk;
     }
+
+	void Start()
+	{
+		SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+	}
+
+	void Stop()
+	{
+		SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
+	}
 
     void OnTick()
     {

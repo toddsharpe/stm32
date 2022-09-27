@@ -2,6 +2,7 @@
 
 #include <cstdarg>
 #include <cstddef>
+#include <cstdint>
 
 class StringPrinter
 {
