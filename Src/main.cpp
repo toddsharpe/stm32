@@ -6,23 +6,40 @@
 #include "stm32/Usart.h"
 #include "stm32/SystemTimer.h"
 #include "stm32/Timer.h"
+#include "arm.h"
+#include "rtos/Kernel.h"
 
 // Peripherals
-SystemTimer sysTimer(TickFreq::TickFreq_10HZ);
-GpioPin led1(GPIOB, 0);
-GpioPin led2(GPIOB, 7);
 GpioPin led3(GPIOB, 14);
 GpioPin button(GPIOC, 13);
 Timer timer2(TIM2);
 Usart uart(USART3);
 
-void Delay(uint32_t ms)
+Kernel kernel = {};
+
+void task1()
 {
-	const uint32_t ticks = sysTimer.GetTicks();
-	const uint32_t target = ticks + ms;
-	while (sysTimer.GetTicks() < target)
+	GpioPin led1(GPIOB, 0);
+	led1.Init(GpioOutput);
+	led1.Set(false);
+	while (true)
 	{
-		__WFI();
+		uart.Write("Task1\r\n");
+		led1.Toggle();
+		kernel.Sleep(1000);
+	}
+}
+
+void task2()
+{
+	GpioPin led2(GPIOB, 7);
+	led2.Init(GpioOutput);
+	led2.Set(false);
+	while (true)
+	{
+		uart.Write("Task2\r\n");
+		led2.Toggle();
+		kernel.Sleep(2000);
 	}
 }
 
@@ -35,41 +52,75 @@ int main(void)
 
 	__DSB();
 
-	sysTimer.Init();
-	led1.Init(GpioOutput);
-	led2.Init(GpioOutput);
 	led3.Init(GpioOutput);
 	button.Init(GpioInput);
-	timer2.Init(500);
 	uart.Init(UartDefault);
+	//timer2.Init(2000);
+
+	led3.Set(false);
 
 	uart.Printf("SystemCoreClock: %d\r\n", SystemCoreClock);
 
-	while (true)
-	{
-		const char Test[] = "Hello STM uart !!!\r\n"; //Data to send
-		uart.PrintBytes(Test,sizeof(Test));
-	  	Delay(1000);
-		led1.Toggle();
-	}
+	kernel.Init();
+	kernel.CreateThread(&task1);
+	kernel.CreateThread(&task2);
+	kernel.Run();
 }
 
 extern "C" void SysTick_Handler()
 {
-	sysTimer.OnTick();
+	kernel.OnSysTick();
 }
 
-extern "C" void TIM2_IRQHandler()
+extern "C" void exception_handler(const HardwareStackFrame* ptr, const SoftwareStackFrame* ctx)
 {
-	led2.Toggle();
-	TIM2->SR &= ~(TIM_SR_UIF);
+	const uint32_t ipsr = __get_IPSR();
+	const uint32_t irq = (ipsr & 0xFF) - 16;
+
+	uart.Printf("IRQ: %d\r\n", irq);
+	uart.Printf("PC: 0x%x, LR: 0x%x, CallerLR: 0x%x\r\n", ptr->PC, ptr->LR, ctx->LR);
+	uart.Printf("R4: 0x%x, R5: 0x%x, R6: 0x%x, R7: 0x%x\r\n", ctx->R4, ctx->R5, ctx->R6, ctx->R7);
+
+	switch (irq)
+	{
+		case TIM2_IRQn:
+		{
+			TIM2->SR &= ~(TIM_SR_UIF);
+		}
+			break;
+
+		case USART3_IRQn:
+		{
+			led3.Toggle();
+			char r[2] = {};
+			r[0] = USART3->RDR;
+			r[1] = '\0';
+			uart.Write(r, sizeof(r));
+		}
+			break;
+	}
 }
 
-extern "C" void USART3_IRQHandler()
+void Printf(const char* format, ...)
 {
-	led3.Toggle();
-	char r[2] = {};
-	r[0] = USART3->RDR;
-	r[1] = '\0';
-	uart.Write(r, sizeof(r));
+	va_list args;
+
+	va_start(args, format);
+	uart.Printf(format, args);
+	va_end(args);
+}
+
+void Bugcheck(const char* file, const char* line, const char* format, ...)
+{
+	uart.Printf("Kernel Bugcheck\r\n");
+	uart.Printf("\r\n%s\r\n%s\r\n", file, line);
+
+	va_list args;
+	va_start(args, format);
+	uart.Printf(format, args);
+	uart.Printf("\r\n");
+	va_end(args);
+
+	kernel.Stop();
+	while (1);
 }

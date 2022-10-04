@@ -3,6 +3,8 @@
 #include "stm32/GpioPin.h"
 #include "StringPrinter.h"
 #include <cstdint>
+#include <cstring>
+#include "stm32f7xx.h"
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__) (((__PCLK__) + ((__BAUD__) / 2U)) / (__BAUD__))
 
@@ -42,10 +44,14 @@ public:
 		m_tx.Init(pinConfig);
 		m_rx.Init(pinConfig);
 
-		NVIC_SetPriority(USART3_IRQn, 0x00);
 		NVIC_EnableIRQ(USART3_IRQn);
 
 		m_usart->CR1 |= USART_CR1_UE; // USART3 enable.
+	}
+
+	void Write(const char*ptr)
+	{
+		Write(ptr, strlen(ptr));
 	}
 
 	virtual void Write(const char *ptr, const size_t len) override

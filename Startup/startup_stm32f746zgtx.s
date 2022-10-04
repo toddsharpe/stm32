@@ -134,14 +134,14 @@ g_pfnVectors:
   .word	MemManage_Handler
   .word	BusFault_Handler
   .word	UsageFault_Handler
-  .word	0
-  .word	0
-  .word	0
-  .word	0
-  .word	SVC_Handler
+	.word	0
+	.word	0
+	.word	0
+	.word	0
+	.word	SVC_Handler
   .word	DebugMon_Handler
-  .word	0
-  .word	PendSV_Handler
+	.word	0
+	.word	PendSV_Handler
   .word	SysTick_Handler
   .word	WWDG_IRQHandler              			/* Window Watchdog interrupt                                           */
   .word	PVD_IRQHandler               			/* PVD through EXTI line detection INTERRUPT                           */
@@ -362,7 +362,7 @@ g_pfnVectors:
 	.thumb_set TIM1_CC_IRQHandler,Default_Handler
 
 	.weak	TIM2_IRQHandler
-	.thumb_set TIM2_IRQHandler,Default_Handler
+	.thumb_set TIM2_IRQHandler,arm_exception_handler
 
 	.weak	TIM3_IRQHandler
 	.thumb_set TIM3_IRQHandler,Default_Handler
@@ -395,7 +395,7 @@ g_pfnVectors:
 	.thumb_set USART2_IRQHandler,Default_Handler
 
 	.weak	USART3_IRQHandler
-	.thumb_set USART3_IRQHandler,Default_Handler
+	.thumb_set USART3_IRQHandler,arm_exception_handler
 
 	.weak	EXTI15_10_IRQHandler
 	.thumb_set EXTI15_10_IRQHandler,Default_Handler
@@ -572,5 +572,4 @@ g_pfnVectors:
 	.thumb_set SPDIFRX_IRQHandler,Default_Handler
 
 	.weak	SystemInit
-
 /************************ (C) COPYRIGHT STMicroelectonics *****END OF FILE****/
