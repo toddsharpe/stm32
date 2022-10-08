@@ -2,7 +2,7 @@
 Playing around with bare-metal STM32 (CMSIS only).
 
 ## Boards
-[NUCLEO-F746ZG](https://www.mouser.com/ProductDetail/STMicroelectronics/NUCLEO-F746ZG)
+[NUCLEO-F746ZG](https://www.st.com/en/evaluation-tools/nucleo-f746zg.html)
 
 
 ## Drivers
