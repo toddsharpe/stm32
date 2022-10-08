@@ -6,6 +6,9 @@ https://hackaday.com/2021/03/26/bare-metal-stm32-please-mind-the-interrupt-event
 https://vivonomicon.com/2020/06/28/bare-metal-stm32-programming-part-10-uart-communication/
 https://www.codeinsideout.com/blog/stm32/task-scheduler/#task-table
 
+https://www.devcoons.com/howto-stm32-custom-bootloader-application/
+https://james919.github.io/makefile-mcu
+
 Params
 r0, r1, r2, r3
 

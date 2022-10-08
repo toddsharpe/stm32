@@ -47,7 +47,7 @@ Src/Rtos_Kernel.cpp
 
 # ASM sources
 ASM_SOURCES =  \
-Src/Interrupts.s \
+Src/Rtos_Interrupts.s \
 Startup/startup_stm32f746zgtx.s
 
 

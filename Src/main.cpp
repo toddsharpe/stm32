@@ -10,36 +10,35 @@
 #include "rtos/Kernel.h"
 
 // Peripherals
-GpioPin led3(GPIOB, 14);
-GpioPin button(GPIOC, 13);
-Timer timer2(TIM2);
+GpioPin led3(LD3_GPIO_Port, LD3_Pin);
 Usart uart(USART3);
 
+//Kernel
 Kernel kernel = {};
 
 void task1()
 {
-	GpioPin led1(GPIOB, 0);
+	GpioPin led1(LD1_GPIO_Port, LD1_Pin);
 	led1.Init(GpioOutput);
 	led1.Set(false);
 	while (true)
 	{
 		uart.Write("Task1\r\n");
 		led1.Toggle();
-		kernel.Sleep(1000);
+		kernel.Sleep(3000);
 	}
 }
 
 void task2()
 {
-	GpioPin led2(GPIOB, 7);
+	GpioPin led2(LD2_GPIO_Port, LD2_Pin);
 	led2.Init(GpioOutput);
 	led2.Set(false);
 	while (true)
 	{
 		uart.Write("Task2\r\n");
 		led2.Toggle();
-		kernel.Sleep(2000);
+		kernel.Sleep(5000);
 	}
 }
 
@@ -53,10 +52,7 @@ int main(void)
 	__DSB();
 
 	led3.Init(GpioOutput);
-	button.Init(GpioInput);
 	uart.Init(UartDefault);
-	//timer2.Init(2000);
-
 	led3.Set(false);
 
 	uart.Printf("SystemCoreClock: %d\r\n", SystemCoreClock);
@@ -72,33 +68,12 @@ extern "C" void SysTick_Handler()
 	kernel.OnSysTick();
 }
 
-extern "C" void exception_handler(const HardwareStackFrame* ptr, const SoftwareStackFrame* ctx)
+extern "C" void exception_handler(const HardwareStackFrame* frame, const SoftwareStackFrame* context)
 {
-	const uint32_t ipsr = __get_IPSR();
-	const uint32_t irq = (ipsr & 0xFF) - 16;
-
-	uart.Printf("IRQ: %d\r\n", irq);
-	uart.Printf("PC: 0x%x, LR: 0x%x, CallerLR: 0x%x\r\n", ptr->PC, ptr->LR, ctx->LR);
-	uart.Printf("R4: 0x%x, R5: 0x%x, R6: 0x%x, R7: 0x%x\r\n", ctx->R4, ctx->R5, ctx->R6, ctx->R7);
-
-	switch (irq)
-	{
-		case TIM2_IRQn:
-		{
-			TIM2->SR &= ~(TIM_SR_UIF);
-		}
-			break;
-
-		case USART3_IRQn:
-		{
-			led3.Toggle();
-			char r[2] = {};
-			r[0] = USART3->RDR;
-			r[1] = '\0';
-			uart.Write(r, sizeof(r));
-		}
-			break;
-	}
+	led3.Toggle();
+	
+	const uint32_t irq = (__get_IPSR() & 0xFF) - 16;
+	kernel.HandleInterrupt((InterruptVector)irq, frame, context);
 }
 
 void Printf(const char* format, ...)

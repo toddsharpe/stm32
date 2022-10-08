@@ -1,6 +1,23 @@
 #pragma once
 
-/*
+#include "stm32f746xx.h"
+
+#define GPIO_PIN_0 0
+#define GPIO_PIN_1 1
+#define GPIO_PIN_2 2
+#define GPIO_PIN_3 3
+#define GPIO_PIN_4 4
+#define GPIO_PIN_5 5
+#define GPIO_PIN_6 6
+#define GPIO_PIN_7 7
+#define GPIO_PIN_8 8
+#define GPIO_PIN_9 9
+#define GPIO_PIN_10 10
+#define GPIO_PIN_11 11
+#define GPIO_PIN_12 12
+#define GPIO_PIN_13 13
+#define GPIO_PIN_14 14
+
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 #define MCO_Pin GPIO_PIN_0
@@ -53,4 +70,3 @@
 #define SW0_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
-*/

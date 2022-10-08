@@ -12,6 +12,7 @@ struct Buffer
 	size_t Length;
 };
 
+typedef IRQn_Type InterruptVector;
 typedef void (*InterruptHandler)(void* arg);
 struct InterruptContext
 {
