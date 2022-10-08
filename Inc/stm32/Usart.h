@@ -4,6 +4,7 @@
 #include "StringPrinter.h"
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include "stm32f7xx.h"
 
 #define UART_DIV_SAMPLING16(__PCLK__, __BAUD__) (((__PCLK__) + ((__BAUD__) / 2U)) / (__BAUD__))
@@ -15,13 +16,19 @@ struct UartConfig
 
 static constexpr UartConfig const UartDefault = { .BaudRate = 115200 };
 
+class Usart;
+typedef void (*CharReceived)(Usart* sender, const uint8_t c);
 class Usart: public StringPrinter
 {
 public:
-	Usart(USART_TypeDef *usart) : m_usart(usart), m_tx(GPIOD, 8), m_rx(GPIOD, 9)
+	static void OnRx(void* arg) { ((Usart*)arg)->OnRx(); };
+
+	Usart(USART_TypeDef *usart) : OnCharReceived(), m_usart(usart), m_tx(GPIOD, 8), m_rx(GPIOD, 9)
 	{
 		// TODO: build pins based on usart#
 	}
+
+	CharReceived OnCharReceived;
 
 	void Init(const UartConfig& config)
 	{
@@ -49,19 +56,24 @@ public:
 		m_usart->CR1 |= USART_CR1_UE; // USART3 enable.
 	}
 
-	void Write(const char*ptr)
+	virtual void Write(const std::string& str) override
 	{
-		Write(ptr, strlen(ptr));
+		for (const char c : str)
+		{
+			while (!(m_usart->ISR & USART_ISR_TXE)) { };
+			m_usart->TDR = c;
+		}
+		while (!(m_usart->ISR & USART_ISR_TC)) {};
 	}
 
-	virtual void Write(const char *ptr, const size_t len) override
+	void OnRx()
 	{
-		for (size_t i = 0; i < len; i++)
-		{
-			while (!(USART3->ISR & USART_ISR_TXE)) { };
-			m_usart->TDR = *ptr++;
-		}
-		while (!(USART3->ISR & USART_ISR_TC)) {};
+		const uint8_t c = (uint8_t)m_usart->RDR;
+		if (OnCharReceived != nullptr)
+			OnCharReceived(this, c);
+		char chars[2] = {};
+		chars[0] = c;
+		this->Write(chars);
 	}
 
 private:

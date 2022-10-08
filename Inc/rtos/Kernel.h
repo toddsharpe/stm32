@@ -19,6 +19,9 @@ public:
 	bool Yield();
 	bool Sleep(const size_t ms);
 
+	void RegisterInterrupt(const InterruptVector interrupt, const InterruptContext& context);
+	void HandleInterrupt(const InterruptVector interrupt, const HardwareStackFrame* frame, const SoftwareStackFrame* context);
+
 	void OnSysTick();
 
 private:
@@ -35,7 +38,7 @@ private:
 	int m_threadIndex;
 	std::vector<KThread*> m_threads;
 
-	std::map<IRQn_Type, InterruptContext> m_interruptHandlers;
+	std::map<InterruptVector, InterruptContext> m_interruptHandlers;
 
 	SystemTimer m_sysTimer;
 };

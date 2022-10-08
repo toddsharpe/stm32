@@ -18,6 +18,9 @@ bool Kernel::Init()
 	if (!CreateThread(&KThread::Idle, ThreadPriority::Low))
 		return false;
 
+	//Register UART interrupt
+	RegisterInterrupt(USART3_IRQn, {&Usart::OnRx, &uart});
+
 	m_sysTimer.Init();
 	
 	return true;
@@ -41,6 +44,8 @@ bool Kernel::Run()
 bool Kernel::Stop()
 {
 	m_sysTimer.Stop();
+
+	return true;
 }
 
 bool Kernel::CreateThread(const ThreadStart entry, const ThreadPriority priority, const size_t stackSize)
@@ -76,6 +81,27 @@ bool Kernel::Yield()
 {
 	Reschedule();
 	return true;
+}
+
+void Kernel::RegisterInterrupt(const InterruptVector interrupt, const InterruptContext& context)
+{
+	Assert(m_interruptHandlers.find(interrupt) == m_interruptHandlers.end());
+	m_interruptHandlers.insert({ interrupt, context });
+}
+
+void Kernel::HandleInterrupt(const InterruptVector interrupt, const HardwareStackFrame* frame, const SoftwareStackFrame* context)
+{
+	uart.Printf("IRQ: %d\r\n", interrupt);
+	uart.Printf("PC: 0x%x, LR: 0x%x, CallerLR: 0x%x\r\n", frame->PC, frame->LR, frame->LR);
+	uart.Printf("R4: 0x%x, R5: 0x%x, R6: 0x%x, R7: 0x%x\r\n", context->R4, context->R5, context->R6, context->R7);
+	
+	const auto& it = m_interruptHandlers.find(interrupt);
+	if (it != m_interruptHandlers.end())
+	{
+		InterruptContext ctx = it->second;
+		ctx.Handler(ctx.Context);
+		return;
+	}
 }
 
 void Kernel::OnSysTick()

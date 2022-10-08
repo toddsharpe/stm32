@@ -1,5 +1,6 @@
 #pragma once
 
+//TIM2->SR &= ~(TIM_SR_UIF);
 class Timer
 {
 public:
