@@ -16,8 +16,7 @@ struct UartConfig
 
 static constexpr UartConfig const UartDefault = { .BaudRate = 115200 };
 
-class Usart;
-typedef void (*CharReceived)(Usart* sender, const uint8_t c);
+typedef void (*CharReceived)(void* sender, const uint8_t c);
 class Usart: public StringPrinter
 {
 public:
@@ -30,10 +29,10 @@ public:
 
 	CharReceived OnCharReceived;
 
-	void Init(const UartConfig& config)
+	void Init(const uint32_t clkFreq, const UartConfig& config)
 	{
 		m_usart->CR1 &= ~USART_CR1_UE; // turn it off
-		m_usart->BRR = (uint32_t)(UART_DIV_SAMPLING16(SystemCoreClock, config.BaudRate));
+		m_usart->BRR = (uint32_t)(UART_DIV_SAMPLING16(clkFreq, config.BaudRate));
 		m_usart->CR1 |= (USART_CR1_RE | USART_CR1_TE); // RX, TX enable.
 		m_usart->CR1 |= USART_CR1_RXNEIE;			   // UART3 Receive Interrupt Enable.
 
