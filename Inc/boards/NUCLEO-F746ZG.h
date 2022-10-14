@@ -2,6 +2,14 @@
 
 #include "stm32f746xx.h"
 
+#include "stm32/Rcc.h"
+#include "stm32/Pll.h"
+#include "stm32/SystemClock.h"
+#include "stm32/GpioPin.h"
+#include "stm32/Usart.h"
+#include "boards/Board.h"
+#include "util/util.h"
+
 #define GPIO_PIN_0 0
 #define GPIO_PIN_1 1
 #define GPIO_PIN_2 2
@@ -70,3 +78,64 @@
 #define SW0_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
+
+class NucleoF746ZG : public Board
+{
+public:
+	NucleoF746ZG() : Board(), rcc(16'000'000, 8'000'000), uart(USART3), Led1(LD1_GPIO_Port, LD1_Pin), Led2(LD2_GPIO_Port, LD2_Pin), Led3(LD3_GPIO_Port, LD3_Pin)
+	{
+
+	}
+
+	void Init()
+	{
+		//Initialize peripherals
+		SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOBEN);
+		SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOCEN);
+		SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIODEN);
+		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USART3EN);
+		__DSB();
+		
+		//Initialize system clock
+		Pll::Init(DefaultPllCOonfig);
+		SystemClock::Init(DefaultSysClock);
+
+		//Initialize peripherals
+		uart.Init(rcc.GetPClk1Freq(), UartDefault);
+		Led1.Init(GpioOutput);
+		Led2.Init(GpioOutput);
+		Led3.Init(GpioOutput);
+
+		//Print welcome
+		uart.Printf("Board initialized\r\n");
+
+		//Print clocks
+		RccClocks clocks = {};
+		rcc.GetSystemClocksFreq(clocks);
+		uart.Printf("SysClkFreq: %d\r\n", clocks.SysClkFreq);
+		uart.Printf("HClkFreq: %d\r\n", clocks.HClkFreq);
+		uart.Printf("PClk1Freq: %d\r\n", clocks.PClk1Freq);
+		uart.Printf("PClk2Freq: %d\r\n", clocks.PClk2Freq);
+	}
+
+	virtual void Printf(const char *format, ...) override
+	{
+		va_list args;
+		va_start(args, format);
+		uart.Printf(format, args);
+		va_end(args);
+	}
+
+	virtual uint32_t GetSysClkFreq() const override
+	{
+		return rcc.GetSysClkFreq();
+	}
+
+	Rcc rcc;
+
+	Usart uart;
+
+	GpioPin Led1;
+	GpioPin Led2;
+	GpioPin Led3;
+};

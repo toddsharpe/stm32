@@ -90,6 +90,8 @@ public:
 	{
 		m_port->ODR &= ~(1 << m_pin);
 		m_port->ODR |= ((value ? 1 : 0) << m_pin);
+		//const size_t bit = (1 << (m_pin + (value ? 16 : 0)));
+		//m_port->BSRR = bit;
 	}
 
 	bool Get()

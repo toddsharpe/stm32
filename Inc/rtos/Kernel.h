@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rtos/KThread.h"
+#include "boards/Board.h"
 #include "stm32/SystemTimer.h"
 #include "stm32f746xx.h"
 #include <vector>
@@ -10,7 +11,7 @@
 class Kernel
 {
 public:
-	Kernel();
+	Kernel(Board& board);
 	bool Init();
 	bool Run();
 	bool Stop();
@@ -41,4 +42,6 @@ private:
 	std::map<InterruptVector, InterruptContext> m_interruptHandlers;
 
 	SystemTimer m_sysTimer;
+
+	Board& m_board;
 };
