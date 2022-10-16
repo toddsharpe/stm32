@@ -1,6 +1,7 @@
+.syntax unified
+
 .global arm_exception_handler
 .thumb_func
-.syntax unified
 .section .text.arm_exception_handler,"ax",%progbits
 arm_exception_handler:
 	cpsid if // Disable interrupts
@@ -22,7 +23,6 @@ arm_exception_handler:
 
 .global SVC_Handler
 .thumb_func
-.syntax unified
 .section .text.SVC_Handler,"ax",%progbits
 SVC_Handler:
 	cpsid if // Disable interrupts
@@ -40,7 +40,6 @@ SVC_Handler:
 
 .global PendSV_Handler
 .thumb_func
-.syntax unified
 .section .text.PendSV_Handler,"ax",%progbits
 PendSV_Handler:
 	cpsid if

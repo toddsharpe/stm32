@@ -9,7 +9,7 @@ public:
 
     }
 
-    void Init(const uint32_t ms)
+    void Init(const uint32_t clkFreq, const uint32_t ms)
     {
         SET_BIT(RCC->APB1ENR, RCC_APB1ENR_TIM2EN);
         NVIC_SetPriority(TIM2_IRQn, 0x03);
@@ -21,7 +21,7 @@ public:
             RCC->APB1RSTR &= ~(RCC_APB1RSTR_TIM2RST);
         }
 
-        m_timer->PSC   = SystemCoreClock / 1000;
+        m_timer->PSC   = clkFreq / 1000;
         m_timer->ARR   = ms - 1;
         m_timer->CNT   = 0;
         m_timer->EGR  |= TIM_EGR_UG;

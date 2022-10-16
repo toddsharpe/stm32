@@ -38,6 +38,8 @@ void task2()
 int main(void)
 {
 	board.Init();
+	board.Printf("Application Active\r\n");
+
 	kernel.Init();
 
 	kernel.CreateThread(&task1);

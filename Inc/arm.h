@@ -60,3 +60,9 @@ struct RCC_CR
 	};
 };
 static_assert(sizeof(RCC_CR) == sizeof(uint32_t));
+
+struct ResetVectorTable
+{
+	uint32_t InitialSP;
+	uint32_t Reset;
+};
