@@ -29,26 +29,25 @@ OPT = -Og
 # paths
 #######################################
 # Build path
-BUILD_DIR = build
+BUILD_DIR = ../../build/App
 
 ######################################
 # source
 ######################################
 # C sources
 C_SOURCES =  \
-Src/system_stm32f7xx.c \
-Src/sysmem.c \
-Src/syscalls.c
+system_stm32f7xx.c \
+../Common/sysmem.c \
+../Common/syscalls.c
 
 CXX_SOURCES = \
-Src/main.cpp \
-Src/StringPrinter.cpp \
-Src/Rtos_Kernel.cpp
+main.cpp \
+../Rtos/Kernel.cpp
 
 # ASM sources
 ASM_SOURCES =  \
-Src/Rtos_Interrupts.s \
-Startup/startup_stm32f746zgtx.s
+../Rtos/Interrupts.s \
+startup_stm32f746zgtx.s
 
 
 #######################################
@@ -112,9 +111,9 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--IInc \
--IExternal/cmsis_device_f7/Include \
--IExternal/CMSIS_5/CMSIS/Core/Include
+-I../../Inc \
+-I../../External/cmsis_device_f7/Include \
+-I../../External/CMSIS_5/CMSIS/Core/Include
 
 CXX_INCLUDES = $(C_INCLUDES) \
 -I/usr/arm-none-eabi/include/c++/11.2.0

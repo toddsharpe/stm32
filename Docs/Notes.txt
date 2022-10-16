@@ -25,3 +25,23 @@ r12 - scratch (volatile)
 r13 - SP
 R14 - LR
 R15 - PC
+
+Memory Layout
+RM0385 - 2.2.2
+Flash Memory on AXIM interface: 0x0800_0000 to 0x080F_FFFF (1MB)
+
+Solution Layout
+Bootloader - 64k
+Empty - 64k
+Empty - 64k
+Empty - 64k
+App - 512K (on 256k boundary)
+256k Empty
+
+Therefore
+0x0800_0000 - 0x0801_0000 - Bootloader
+0x0801_0000 - 0x0802_0000 - Empty
+0x0802_0000 - 0x0803_0000 - Empty
+0x0803_0000 - 0x0804_0000 - Empty
+0x0804_0000 - 0x080C_0000 - App
+0x080C_0000 - 0x0810_0000 - Empty

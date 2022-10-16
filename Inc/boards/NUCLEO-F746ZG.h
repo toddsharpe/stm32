@@ -112,10 +112,10 @@ public:
 		//Print clocks
 		RccClocks clocks = {};
 		rcc.GetSystemClocksFreq(clocks);
-		uart.Printf("SysClkFreq: %d\r\n", clocks.SysClkFreq);
-		uart.Printf("HClkFreq: %d\r\n", clocks.HClkFreq);
-		uart.Printf("PClk1Freq: %d\r\n", clocks.PClk1Freq);
-		uart.Printf("PClk2Freq: %d\r\n", clocks.PClk2Freq);
+		uart.Printf("-SysClkFreq: %d\r\n", clocks.SysClkFreq);
+		uart.Printf("-HClkFreq: %d\r\n", clocks.HClkFreq);
+		uart.Printf("-PClk1Freq: %d\r\n", clocks.PClk1Freq);
+		uart.Printf("-PClk2Freq: %d\r\n", clocks.PClk2Freq);
 	}
 
 	virtual void Printf(const char *format, ...) override
