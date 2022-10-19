@@ -11,6 +11,8 @@
 class Kernel
 {
 public:
+	static void OnSysTick(void* arg) { ((Kernel*)arg)->OnSysTick(); };
+
 	Kernel(Board& board);
 	bool Init();
 	bool Run();
@@ -23,10 +25,9 @@ public:
 	void RegisterInterrupt(const InterruptVector interrupt, const InterruptContext& context);
 	void HandleInterrupt(const InterruptVector interrupt, const HardwareStackFrame* frame, const SoftwareStackFrame* context);
 
-	void OnSysTick();
-
 private:
 	void Reschedule();
+	void OnSysTick();
 
 	void* PendSV_Handler(void* psp);
 

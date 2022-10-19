@@ -48,7 +48,7 @@ struct RCC_PLLCFGR
 };
 static_assert(sizeof(RCC_PLLCFGR) == sizeof(uint32_t));
 
-static constexpr PllConfig const DefaultPllCOonfig = { .Source = PllSrc::HSE, .M = 4, .N = 72, .P = PllDiv::Div2, .Q = 3 };
+static constexpr PllConfig const DefaultPllConfig = { .Source = PllSrc::HSE, .M = 4, .N = 72, .P = PllDiv::Div2, .Q = 3 };
 
 class Pll
 {

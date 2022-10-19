@@ -275,7 +275,7 @@ g_pfnVectors:
 	.thumb_set PendSV_Handler,Default_Handler
 
 	.weak	SysTick_Handler
-	.thumb_set SysTick_Handler,Default_Handler
+	.thumb_set SysTick_Handler,arm_exception_handler
 
 	.weak	WWDG_IRQHandler
 	.thumb_set WWDG_IRQHandler,Default_Handler
@@ -392,7 +392,7 @@ g_pfnVectors:
 	.thumb_set USART1_IRQHandler,Default_Handler
 
 	.weak	USART2_IRQHandler
-	.thumb_set USART2_IRQHandler,Default_Handler
+	.thumb_set USART2_IRQHandler,arm_exception_handler
 
 	.weak	USART3_IRQHandler
 	.thumb_set USART3_IRQHandler,Default_Handler

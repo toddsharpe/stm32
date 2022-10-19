@@ -16,11 +16,10 @@ bool Kernel::Init()
 	if (!CreateThread(&KThread::Idle, ThreadPriority::Low))
 		return false;
 
-	//Register UART interrupt
-	//RegisterInterrupt(USART3_IRQn, {&Usart::OnRx, &uart});
-
+	//Create timer
 	m_sysTimer.Init(m_board.GetSysClkFreq());
-	
+	this->RegisterInterrupt(IRQn_Type::SysTick_IRQn, {&Kernel::OnSysTick, this});
+
 	return true;
 }
 
@@ -63,13 +62,13 @@ bool Kernel::CreateThread(const ThreadStart entry, const ThreadPriority priority
 
 bool Kernel::Sleep(const size_t ms)
 {
-	m_board.Printf("Kernel::Sleep\r\n");
+	//m_board.Printf("Kernel::Sleep\r\n");
 	AssertEqual(m_threads[m_threadIndex]->m_state, ThreadState::Running);
 	
 	const uint32_t current = m_sysTimer.GetTicks();
 	m_threads[m_threadIndex]->m_state = ThreadState::Sleeping;
 	m_threads[m_threadIndex]->m_sleepWake = current + ms;
-	m_board.Printf("    Sleep %d, Current: %d, Wake: %d\r\n", ms, current, m_threads[m_threadIndex]->m_sleepWake);
+	//m_board.Printf("    Sleep %d, Current: %d, Wake: %d\r\n", ms, current, m_threads[m_threadIndex]->m_sleepWake);
 
 	Reschedule();
 	return true;
@@ -89,10 +88,6 @@ void Kernel::RegisterInterrupt(const InterruptVector interrupt, const InterruptC
 
 void Kernel::HandleInterrupt(const InterruptVector interrupt, const HardwareStackFrame* frame, const SoftwareStackFrame* context)
 {
-	m_board.Printf("IRQ: %d\r\n", interrupt);
-	m_board.Printf("PC: 0x%x, LR: 0x%x, CallerLR: 0x%x\r\n", frame->PC, frame->LR, frame->LR);
-	m_board.Printf("R4: 0x%x, R5: 0x%x, R6: 0x%x, R7: 0x%x\r\n", context->R4, context->R5, context->R6, context->R7);
-	
 	const auto& it = m_interruptHandlers.find(interrupt);
 	if (it != m_interruptHandlers.end())
 	{
@@ -100,6 +95,13 @@ void Kernel::HandleInterrupt(const InterruptVector interrupt, const HardwareStac
 		ctx.Handler(ctx.Context);
 		return;
 	}
+
+	m_board.Printf("Unhandled interrupt\r\n");
+	m_board.Printf("IRQ: %d\r\n", interrupt);
+	m_board.Printf("PC: 0x%x, LR: 0x%x, CallerLR: 0x%x\r\n", frame->PC, frame->LR, frame->LR);
+	m_board.Printf("R4: 0x%x, R5: 0x%x, R6: 0x%x, R7: 0x%x\r\n", context->R4, context->R5, context->R6, context->R7);
+	
+	KThread::Idle();
 }
 
 void Kernel::OnSysTick()

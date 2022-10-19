@@ -93,15 +93,22 @@ public:
 		SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOBEN);
 		SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIOCEN);
 		SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIODEN);
+		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USART2EN);
 		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USART3EN);
 		__DSB();
 		
 		//Initialize system clock
-		Pll::Init(DefaultPllCOonfig);
+		Pll::Init(DefaultPllConfig);
 		SystemClock::Init(DefaultSysClock);
 
 		//Initialize peripherals
+		GpioPin uart3_tx(GPIOD, 8);
+		uart3_tx.Init(GpioUart3);
+		GpioPin uart3_rx(GPIOD, 9);
+		uart3_rx.Init(GpioUart3);
 		uart.Init(rcc.GetPClk1Freq(), UartDefault);
+		uart.EnableInterrupt(USART_CR1_RXNEIE);
+
 		Led1.Init(GpioOutput);
 		Led2.Init(GpioOutput);
 		Led3.Init(GpioOutput);
@@ -124,6 +131,16 @@ public:
 		va_start(args, format);
 		uart.Printf(format, args);
 		va_end(args);
+	}
+
+	virtual void Printf(const char* format, va_list args) override
+	{
+		uart.Printf(format, args);
+	}
+
+	virtual void Write(const std::string& str) override
+	{
+		uart.Write(str);
 	}
 
 	virtual uint32_t GetSysClkFreq() const override

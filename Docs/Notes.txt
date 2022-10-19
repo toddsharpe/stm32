@@ -45,3 +45,24 @@ Therefore
 0x0803_0000 - 0x0804_0000 - Empty
 0x0804_0000 - 0x080C_0000 - App
 0x080C_0000 - 0x0810_0000 - Empty
+
+RTT
+https://wiki.segger.com/RTT
+https://github.com/SEGGERMicro/RTT
+https://www.segger.com/products/debug-probes/j-link/models/other-j-links/st-link-on-board/
+https://www.segger.com/products/debug-probes/j-link/technology/about-real-time-transfer/
+
+Simple delay
+SystemTimer timer(TickFreq::TickFreq_10HZ);
+timer.Init(board.rcc.GetSysClkFreq());
+
+void Delay(const uint32_t ms)
+{
+	const uint32_t current = timer.GetTicks();
+	while (timer.GetTicks() < current + ms)
+		__WFI();
+}
+extern "C" void SysTick_Handler()
+{
+	timer.OnTick();
+}
