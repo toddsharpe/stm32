@@ -58,6 +58,11 @@ public:
 		return true;
 	}
 
+	void* Front()
+	{
+		return &m_buffer[m_head];
+	}
+
 private:
 	size_t m_head;//Points to item to read
 	size_t m_tail;//Points to last item

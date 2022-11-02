@@ -1,3 +1,5 @@
+// STM: stm32f746ng.pdf
+
 #pragma once
 
 #include "stm32f746xx.h"
@@ -39,8 +41,11 @@ enum GpioSpeed
 	GpioSpeedMask = High
 };
 
+// STM: Table 12 Alternate function mapping
 enum GpioAlternate
 {
+	Usart1 = 7,
+	Usart2 = 7,
 	Usart3 = 7,
 	GpioAlternateMask = 0b1111
 };
@@ -56,6 +61,9 @@ struct GpioPinConfig
 
 static constexpr GpioPinConfig const GpioOutput = { .Mode = GpioMode::Output, .PullType = GpioPullType::None };
 static constexpr GpioPinConfig const GpioInput = { .Mode = GpioMode::Input, .PullType = GpioPullType::None };
+
+static constexpr GpioPinConfig const GpioUart2 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::High, .Alternate = GpioAlternate::Usart2 };
+static constexpr GpioPinConfig const GpioUart3 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::High, .Alternate = GpioAlternate::Usart3 };
 
 class GpioPin
 {
@@ -88,10 +96,7 @@ public:
 
 	void Set(bool value)
 	{
-		m_port->ODR &= ~(1 << m_pin);
-		m_port->ODR |= ((value ? 1 : 0) << m_pin);
-		//const size_t bit = (1 << (m_pin + (value ? 16 : 0)));
-		//m_port->BSRR = bit;
+		m_port->BSRR = (1 << (m_pin + (value ? 0 : 16)));
 	}
 
 	bool Get()

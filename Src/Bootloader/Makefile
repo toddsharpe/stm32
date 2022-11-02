@@ -41,10 +41,12 @@ system_stm32f7xx.c \
 ../Common/syscalls.c
 
 CXX_SOURCES = \
-main.cpp
+main.cpp \
+../Rtos/Kernel.cpp
 
 # ASM sources
 ASM_SOURCES =  \
+../Rtos/Interrupts.s \
 startup_stm32f746zgtx.s
 
 

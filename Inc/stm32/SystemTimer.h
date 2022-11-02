@@ -48,6 +48,13 @@ public:
 		return m_ticks;
 	}
 
+	void DelayThread(const uint32_t ms)
+	{
+		const uint32_t current = GetTicks();
+		while (GetTicks() < current + ms)
+			__WFI();
+	}
+
 private:
 	const TickFreq m_freq;
 	uint32_t m_ticks;
