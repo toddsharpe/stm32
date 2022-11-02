@@ -65,10 +65,27 @@ static constexpr GpioPinConfig const GpioInput = { .Mode = GpioMode::Input, .Pul
 static constexpr GpioPinConfig const GpioUart2 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::High, .Alternate = GpioAlternate::Usart2 };
 static constexpr GpioPinConfig const GpioUart3 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::High, .Alternate = GpioAlternate::Usart3 };
 
+constexpr GPIO_TypeDef* Port_A() {
+  return GPIOA;
+}
+
+constexpr GPIO_TypeDef* Port_B() {
+  return GPIOB;
+}
+
+constexpr GPIO_TypeDef* Port_C() {
+  return GPIOC;
+}
+
+constexpr GPIO_TypeDef* Port_D() {
+  return GPIOD;
+}
+
+template <GPIO_TypeDef* PORT(), size_t TPin>
 class GpioPin
 {
 public:
-	GpioPin(GPIO_TypeDef* port, const size_t pin) : m_port(port), m_pin(pin)
+	GpioPin()
 	{
 
 	}
@@ -77,45 +94,40 @@ public:
 	{
 		if (config.Mode == GpioMode::Output || config.Mode == GpioMode::Alternate)
 		{
-			SET_REG_FIELD(m_port->OSPEEDR, m_pin * 2, GpioSpeed::GpioSpeedMask, config.Speed);
-			SET_REG_FIELD(m_port->OTYPER, m_pin, GpioOutputType::GpioOutputTypeMask, config.OutputType);
+			SET_REG_FIELD(PORT()->OSPEEDR, TPin * 2, GpioSpeed::GpioSpeedMask, config.Speed);
+			SET_REG_FIELD(PORT()->OTYPER, TPin, GpioOutputType::GpioOutputTypeMask, config.OutputType);
 		}
 
 		if (config.Mode != GpioMode::Analog)
 		{
-			SET_REG_FIELD(m_port->PUPDR, m_pin * 2, GpioPullType::GpioPullTypeMask, config.PullType);
+			SET_REG_FIELD(PORT()->PUPDR, TPin * 2, GpioPullType::GpioPullTypeMask, config.PullType);
 		}
 
 		if (config.Mode == GpioMode::Alternate)
 		{
-			SET_REG_FIELD(m_port->AFR[m_pin >> 3], (m_pin & 0b111) * 4, GpioAlternate::GpioAlternateMask, config.Alternate);
+			SET_REG_FIELD(PORT()->AFR[TPin >> 3], (TPin & 0b111) * 4, GpioAlternate::GpioAlternateMask, config.Alternate);
 		}
 		
-		SET_REG_FIELD(m_port->MODER, m_pin * 2, GpioMode::GpioModeMask, config.Mode);
+		SET_REG_FIELD(PORT()->MODER, TPin * 2, GpioMode::GpioModeMask, config.Mode);
 	}
 
 	void Set(bool value)
 	{
-		m_port->BSRR = (1 << (m_pin + (value ? 0 : 16)));
+		PORT()->BSRR = (1 << (TPin + (value ? 0 : 16)));
 	}
 
 	bool Get()
 	{
-		return (m_port->ODR & (1 << m_pin)) != 0;
+		return (PORT()->ODR & (1 << TPin)) != 0;
 	}
 
 	bool Read()
 	{
-		return (m_port->IDR & (1 << m_pin)) != 0;
+		return (PORT()->IDR & (1 << TPin)) != 0;
 	}
 
 	void Toggle()
 	{
 		Set(!Get());
 	}
-
-private:
-	GPIO_TypeDef* m_port;
-	const size_t m_pin;
 };
-

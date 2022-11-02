@@ -10,79 +10,10 @@
 #include "boards/Board.h"
 #include "util/util.h"
 
-#define GPIO_PIN_0 0
-#define GPIO_PIN_1 1
-#define GPIO_PIN_2 2
-#define GPIO_PIN_3 3
-#define GPIO_PIN_4 4
-#define GPIO_PIN_5 5
-#define GPIO_PIN_6 6
-#define GPIO_PIN_7 7
-#define GPIO_PIN_8 8
-#define GPIO_PIN_9 9
-#define GPIO_PIN_10 10
-#define GPIO_PIN_11 11
-#define GPIO_PIN_12 12
-#define GPIO_PIN_13 13
-#define GPIO_PIN_14 14
-
-#define USER_Btn_Pin GPIO_PIN_13
-#define USER_Btn_GPIO_Port GPIOC
-#define MCO_Pin GPIO_PIN_0
-#define MCO_GPIO_Port GPIOH
-#define RMII_MDC_Pin GPIO_PIN_1
-#define RMII_MDC_GPIO_Port GPIOC
-#define RMII_REF_CLK_Pin GPIO_PIN_1
-#define RMII_REF_CLK_GPIO_Port GPIOA
-#define RMII_MDIO_Pin GPIO_PIN_2
-#define RMII_MDIO_GPIO_Port GPIOA
-#define RMII_CRS_DV_Pin GPIO_PIN_7
-#define RMII_CRS_DV_GPIO_Port GPIOA
-#define RMII_RXD0_Pin GPIO_PIN_4
-#define RMII_RXD0_GPIO_Port GPIOC
-#define RMII_RXD1_Pin GPIO_PIN_5
-#define RMII_RXD1_GPIO_Port GPIOC
-#define LD1_Pin GPIO_PIN_0
-#define LD1_GPIO_Port GPIOB
-#define RMII_TXD1_Pin GPIO_PIN_13
-#define RMII_TXD1_GPIO_Port GPIOB
-#define LD3_Pin GPIO_PIN_14
-#define LD3_GPIO_Port GPIOB
-#define STLK_RX_Pin GPIO_PIN_8
-#define STLK_RX_GPIO_Port GPIOD
-#define STLK_TX_Pin GPIO_PIN_9
-#define STLK_TX_GPIO_Port GPIOD
-#define USB_PowerSwitchOn_Pin GPIO_PIN_6
-#define USB_PowerSwitchOn_GPIO_Port GPIOG
-#define USB_OverCurrent_Pin GPIO_PIN_7
-#define USB_OverCurrent_GPIO_Port GPIOG
-#define USB_SOF_Pin GPIO_PIN_8
-#define USB_SOF_GPIO_Port GPIOA
-#define USB_VBUS_Pin GPIO_PIN_9
-#define USB_VBUS_GPIO_Port GPIOA
-#define USB_ID_Pin GPIO_PIN_10
-#define USB_ID_GPIO_Port GPIOA
-#define USB_DM_Pin GPIO_PIN_11
-#define USB_DM_GPIO_Port GPIOA
-#define USB_DP_Pin GPIO_PIN_12
-#define USB_DP_GPIO_Port GPIOA
-#define TMS_Pin GPIO_PIN_13
-#define TMS_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
-#define RMII_TX_EN_Pin GPIO_PIN_11
-#define RMII_TX_EN_GPIO_Port GPIOG
-#define RMII_TXD0_Pin GPIO_PIN_13
-#define RMII_TXD0_GPIO_Port GPIOG
-#define SW0_Pin GPIO_PIN_3
-#define SW0_GPIO_Port GPIOB
-#define LD2_Pin GPIO_PIN_7
-#define LD2_GPIO_Port GPIOB
-
 class NucleoF746ZG : public Board
 {
 public:
-	NucleoF746ZG() : Board(), rcc(16'000'000, 8'000'000), uart(USART3), Led1(LD1_GPIO_Port, LD1_Pin), Led2(LD2_GPIO_Port, LD2_Pin), Led3(LD3_GPIO_Port, LD3_Pin)
+	NucleoF746ZG() : Board(), rcc(16'000'000, 8'000'000), uart(USART3)
 	{
 
 	}
@@ -102,9 +33,9 @@ public:
 		SystemClock::Init(DefaultSysClock);
 
 		//Initialize peripherals
-		GpioPin uart3_tx(GPIOD, 8);
+		GpioPin<Port_D, 8> uart3_tx;
 		uart3_tx.Init(GpioUart3);
-		GpioPin uart3_rx(GPIOD, 9);
+		GpioPin<Port_D, 9> uart3_rx;
 		uart3_rx.Init(GpioUart3);
 		uart.Init(rcc.GetPClk1Freq(), UartDefault);
 		uart.EnableInterrupt(USART_CR1_RXNEIE);
@@ -152,7 +83,7 @@ public:
 
 	Usart uart;
 
-	GpioPin Led1;
-	GpioPin Led2;
-	GpioPin Led3;
+	GpioPin<Port_B, 0> Led1;
+	GpioPin<Port_B, 7> Led2;
+	GpioPin<Port_B, 14> Led3;
 };

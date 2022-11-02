@@ -11,12 +11,11 @@ Kernel kernel(board);
 //Thread Tasks
 void task1()
 {
-	GpioPin& led1 = board.Led1;
-	led1.Set(false);
+	board.Led1.Set(false);
 
 	while (true)
 	{
-		led1.Toggle();
+		board.Led1.Toggle();
 		kernel.Sleep(1000);
 	}
 }

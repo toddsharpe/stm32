@@ -34,9 +34,9 @@ int main()
 
 	//Init Peripherals
 	{
-		GpioPin uart2_tx(GPIOD, 5);
+		GpioPin<Port_D, 5> uart2_tx;
 		uart2_tx.Init(GpioUart2);
-		GpioPin uart2_rx(GPIOD, 6);
+		GpioPin<Port_D, 6> uart2_rx;
 		uart2_rx.Init(GpioUart2);
 	}
 	uart2.Init(board.rcc.GetPClk1Freq(), UartDefault);
