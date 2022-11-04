@@ -4,9 +4,13 @@
 #include "boards/Board.h"
 #include "stm32/SystemTimer.h"
 #include "stm32f746xx.h"
+#include "rtos/Types.h"
+#include "rtos/KEvent.h"
+#include "rtos/Scheduler.h"
+
 #include <vector>
 #include <map>
-#include "rtos/Types.h"
+#include <list>
 
 class Kernel
 {
@@ -19,30 +23,26 @@ public:
 	bool Stop();
 
 	bool CreateThread(const ThreadStart entry, const ThreadPriority priority = ThreadPriority::Normal, const size_t stackSize = DefaultStackSize);
-	bool Yield();
-	bool Sleep(const size_t ms);
+	void Yield();
+	void Sleep(const size_t ms);
 
 	void RegisterInterrupt(const InterruptVector interrupt, const InterruptContext& context);
 	void HandleInterrupt(const InterruptVector interrupt, const HardwareStackFrame* frame, const SoftwareStackFrame* context);
 
+	WaitStatus KeWait(KSignalObject& object, const milli_t timeout = std::numeric_limits<milli_t>::max());
+	void KeSignal(KEvent& event);
+
 private:
-	void Reschedule();
-	void OnSysTick();
-
-	void* PendSV_Handler(void* psp);
-
-	void SaveCurrentPSP(void* psp);
-	void* GetCurrentPSP();
-	bool SelectNextThread();
-
 	static constexpr size_t DefaultStackSize = 4 * 1024;
 
-	int m_threadIndex;
-	std::vector<KThread*> m_threads;
+	void Reschedule();
+	void OnSysTick();
+	void* PendSV_Handler(void* psp);
 
-	std::map<InterruptVector, InterruptContext> m_interruptHandlers;
-
-	SystemTimer m_sysTimer;
+	void* GetCurrentPSP();
 
 	Board& m_board;
+	SystemTimer m_sysTimer;
+	Scheduler m_scheduler;
+	std::map<InterruptVector, InterruptContext> m_interruptHandlers;
 };

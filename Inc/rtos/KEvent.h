@@ -1,9 +1,11 @@
 #pragma once
 
-class KEvent
+#include "KSignalObject.h"
+
+class KEvent : public KSignalObject
 {
 public:
-	KEvent(bool manualReset = false, bool initialState = false) : m_manualReset(manualReset), m_state(initialState)
+	KEvent(bool manualReset = false, bool initialState = false) : KSignalObject(KObjectType::Event), m_manualReset(manualReset), m_state(initialState)
 	{
 
 	}
@@ -23,7 +25,7 @@ public:
 		return m_manualReset;
 	}
 
-	virtual bool IsSignalled() const
+	virtual bool IsSignalled() const override
 	{
 		return m_state;
 	}

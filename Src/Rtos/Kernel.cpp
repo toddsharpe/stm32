@@ -3,7 +3,7 @@
 #include "stm32/Usart.h"
 #include "Assert.h"
 
-Kernel::Kernel(Board& board) : m_threadIndex(), m_threads(), m_sysTimer(TickFreq::TickFreq_10HZ), m_board(board)
+Kernel::Kernel(Board& board) : m_board(board), m_sysTimer(TickFreq::TickFreq_10HZ), m_scheduler(m_sysTimer), m_interruptHandlers()
 {
 
 }
@@ -26,14 +26,9 @@ bool Kernel::Init()
 bool Kernel::Run()
 {
 	m_board.Printf("Kernel::Run\r\n");
-	
-	if (!m_threads.size())
-		return false;
-
 	m_sysTimer.Start();
 
 	//Start kernel
-	m_threads[m_threadIndex]->m_state = ThreadState::Running;
 	__asm("SVC 0");
 	while (1);
 }
@@ -53,31 +48,20 @@ bool Kernel::CreateThread(const ThreadStart entry, const ThreadPriority priority
 	uint8_t* stack = new uint8_t[stackSize];
 	thread->Init(stack, stackSize, entry);
 	thread->m_priority = priority;
-	thread->m_state = ThreadState::Ready;
 	m_board.Printf("    Addr: 0x%x, Stack: 0x%x\r\n", thread, stack);
-	m_threads.push_back(thread);
+	m_scheduler.AddThread(thread);
 
 	return true;
 }
 
-bool Kernel::Sleep(const size_t ms)
+void Kernel::Sleep(const size_t ms)
 {
-	//m_board.Printf("Kernel::Sleep\r\n");
-	AssertEqual(m_threads[m_threadIndex]->m_state, ThreadState::Running);
-	
-	const uint32_t current = m_sysTimer.GetTicks();
-	m_threads[m_threadIndex]->m_state = ThreadState::Sleeping;
-	m_threads[m_threadIndex]->m_sleepWake = current + ms;
-	//m_board.Printf("    Sleep %d, Current: %d, Wake: %d\r\n", ms, current, m_threads[m_threadIndex]->m_sleepWake);
-
-	Reschedule();
-	return true;
+	m_scheduler.Sleep(ms);
 }
 
-bool Kernel::Yield()
+void Kernel::Yield()
 {
-	Reschedule();
-	return true;
+	m_scheduler.Reschedule();
 }
 
 void Kernel::RegisterInterrupt(const InterruptVector interrupt, const InterruptContext& context)
@@ -107,59 +91,54 @@ void Kernel::HandleInterrupt(const InterruptVector interrupt, const HardwareStac
 void Kernel::OnSysTick()
 {
 	m_sysTimer.OnTick();
-
-	Reschedule();
+	m_scheduler.Reschedule();
 }
 
-void Kernel::Reschedule()
+//TODO(tsharpe): Move both these to scheduler? what about asm file?
+void* Kernel::PendSV_Handler(void* psp)
 {
-	SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+	m_scheduler.SaveCurrentPSP(psp);
+	m_scheduler.SelectNextThread();
+	return m_scheduler.GetCurrentPSP();
 }
 
-void Kernel::SaveCurrentPSP(void* psp)
+WaitStatus Kernel::KeWait(KSignalObject& object, const milli_t timeout)
 {
-	m_threads[m_threadIndex]->m_stack = psp;
+	WaitStatus status = m_scheduler.ObjectWait(object, timeout);
+	
+	switch (object.GetType())
+	{
+	case KObjectType::Event:
+	{
+		KEvent& event = (KEvent&)object;
+		if (!event.IsManual())
+			event.Reset();
+	}
+		break;
+
+	case KObjectType::Semaphore:
+	case KObjectType::Sleep:
+		break;
+	}
+
+	return status;
 }
 
 void* Kernel::GetCurrentPSP()
 {
-	return m_threads[m_threadIndex]->m_stack;
+	return m_scheduler.GetCurrentPSP();
 }
 
-bool Kernel::SelectNextThread()
+void Kernel::KeSignal(KEvent& event)
 {
-	//__asm("cpsid i"); //disable irq
-	KThread* current = m_threads[m_threadIndex];
-	if (current->m_state == ThreadState::Running)
-		current->m_state = ThreadState::Ready;
-
-	//Wake sleeping threads
-	for (size_t i = 0; i < m_threads.size(); i++)
+	event.Set();
+	if (event.IsManual())
 	{
-		if (m_threads[i]->m_state == ThreadState::Sleeping && m_threads[i]->m_sleepWake <= m_sysTimer.GetTicks())
-		{
-			m_threads[i]->m_state = ThreadState::Ready;
-		}
+		m_scheduler.ObjectSignalled(event);
 	}
-
-	//Select new thread
-	while (true)
+	else
 	{
-		m_threadIndex = (m_threadIndex + 1) % m_threads.size();
-		
-		if (m_threads[m_threadIndex]->m_state == ThreadState::Ready)
-			break;
+		if (m_scheduler.ObjectSignalledOne(event))
+			event.Reset();
 	}
-
-	KThread* next = m_threads[m_threadIndex];
-	next->m_state = ThreadState::Running;
-
-	return true;
-}
-
-void* Kernel::PendSV_Handler(void* psp)
-{
-	m_threads[m_threadIndex]->m_stack = psp;
-	SelectNextThread();
-	return GetCurrentPSP();
 }
