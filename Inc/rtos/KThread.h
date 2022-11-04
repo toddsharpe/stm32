@@ -4,6 +4,7 @@
 #include <cstring>
 #include "stm32f746xx.h"
 #include <cstdint>
+#include "rtos/Types.h"
 
 // M7: DUI0646C_cortex_m7_dgug.pdf
 
@@ -12,7 +13,7 @@ enum class ThreadState
 	Uninit,
 	Ready,
 	Running,
-	Sleeping
+	SignalWait
 };
 
 enum class ThreadPriority
@@ -38,8 +39,8 @@ public:
 		m_frame(),
 		m_context(),
 		m_state(ThreadState::Uninit),
-		m_sleepWake(0),
-		m_priority(ThreadPriority::Normal)
+		m_priority(ThreadPriority::Normal),
+		m_waitStatus(WaitStatus::None)
 	{
 	}
 
@@ -74,6 +75,6 @@ public:
 	SoftwareStackFrame *m_context;
 
 	ThreadState m_state;
-	uint32_t m_sleepWake;
 	ThreadPriority m_priority;
+	WaitStatus m_waitStatus;
 };

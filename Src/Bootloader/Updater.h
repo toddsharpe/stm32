@@ -4,7 +4,6 @@
 #include "DataChannel.h"
 #include "System.h"
 #include "OTA.h"
-#include "Event.h"
 
 using namespace OTA;
 class Updater
@@ -12,7 +11,7 @@ class Updater
 public:
 	static void OnDataReceived(void* arg, const size_t bytesAvailable) { ((Updater*)arg)->OnDataReceived(bytesAvailable); };
 
-	Updater(Board& board, Kernel& kernel, DataChannel& channel) : m_board(board), m_kernel(kernel), m_channel(channel), m_state(State::BootApp), m_event()
+	Updater(Board& board, Kernel& kernel, DataChannel& channel) : m_board(board), m_kernel(kernel), m_channel(channel), m_state(State::GetApp), m_event()
 	{
 		m_channel.DataReceived.Context = this;
 		m_channel.DataReceived.Handler = &Updater::OnDataReceived;
@@ -59,7 +58,10 @@ private:
 			request.Type = MessageType::GetApp;
 
 			AppInfoMessage response = {};
-			SendAndReceive(request, response);
+			if (!SendAndReceive(request, response))
+			{
+				return;
+			}
 			AssertEqual(response.Type, MessageType::AppInfo);
 
 			numberOfBlocks = response.NumberOfBlocks;
@@ -74,13 +76,17 @@ private:
 			request.BlockNumber = 0;
 
 			DataBlockMessage response = {};
-			SendAndReceive(request, response);
+			if (!SendAndReceive(request, response))
+			{
+				return;
+			}
 			AssertEqual(response.Type, MessageType::DataBlock);
 
 			m_board.PrintBytes((char*)&response.Data[0], 64);
 		}
 
 		m_kernel.Sleep(5*1000);
+		m_board.Printf("booting app...\r\n");
 	}
 
 	void BootApp()
@@ -101,23 +107,27 @@ private:
 	}
 
 	template<class TSend, class TReceive>
-	void SendAndReceive(TSend& send, TReceive& receive)
+	bool SendAndReceive(TSend& send, TReceive& receive)
 	{
-		m_event.Reset();
 		m_channel.Write((uint8_t*)&send, send.Length);
 
 		while (m_channel.BytesAvailable() < sizeof(TReceive))
 		{
 			m_board.Printf("Bytes: %d\r\n", m_channel.BytesAvailable());
-			m_event.Reset();
-			m_event.WaitFor();
+			WaitStatus status = m_kernel.KeWait(m_event, 5*1000);
+			if (status == WaitStatus::Timeout)
+			{
+				m_board.Printf("SendAndReceive timeout\r\n");
+				return false;
+			}
 		}
 		m_channel.Read((uint8_t*)&receive, sizeof(TReceive));
+		return true;
 	}
 
 	void OnDataReceived(const size_t bytesAvailable)
 	{
-		m_event.Set();
+		m_kernel.KeSignal(m_event);
 	}
 
 	Board& m_board;
@@ -125,5 +135,5 @@ private:
 	DataChannel& m_channel;
 
 	State m_state;
-	Event m_event;
+	KEvent m_event;
 };

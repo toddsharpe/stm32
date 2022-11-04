@@ -52,17 +52,5 @@ https://github.com/SEGGERMicro/RTT
 https://www.segger.com/products/debug-probes/j-link/models/other-j-links/st-link-on-board/
 https://www.segger.com/products/debug-probes/j-link/technology/about-real-time-transfer/
 
-Simple delay
-SystemTimer timer(TickFreq::TickFreq_10HZ);
-timer.Init(board.rcc.GetSysClkFreq());
-
-void Delay(const uint32_t ms)
-{
-	const uint32_t current = timer.GetTicks();
-	while (timer.GetTicks() < current + ms)
-		__WFI();
-}
-extern "C" void SysTick_Handler()
-{
-	timer.OnTick();
-}
+Things to do
+Kernel wait/timeout

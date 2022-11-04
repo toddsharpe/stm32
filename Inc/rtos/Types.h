@@ -12,6 +12,13 @@ struct Buffer
 	size_t Length;
 };
 
+enum class WaitStatus
+{
+	None,
+	Signaled,
+	Timeout,
+};
+
 typedef IRQn_Type InterruptVector;
 typedef void (*InterruptHandler)(void* arg);
 struct InterruptContext
@@ -19,3 +26,5 @@ struct InterruptContext
 	InterruptHandler Handler;
 	void* Context;
 };
+
+typedef uint32_t milli_t;//Time in milliseconds
