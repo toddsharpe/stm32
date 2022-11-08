@@ -6,7 +6,7 @@ void DebugPrintf(const char* format, ...);
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 #define Assert(x) if (!(x)) { Bugcheck("File: " __FILE__, "Line: " STR(__LINE__),  #x); }
-#define AssertPrintInt(x, y) if (!(x)) { Bugcheck("File: " __FILE__, "Line: " STR(__LINE__), "Assert Failed: %s, %s=%x\r\n", #x, #y, y); }
+#define AssertPrintInt(x, y) if (!(x)) { Bugcheck("File: " __FILE__, "Line: " STR(__LINE__), "Assert Failed: %s, %s=0x%x\r\n", #x, #y, y); }
 #define AssertEqual(x, y) \
 	if (!(x == y)) \
 	{ \

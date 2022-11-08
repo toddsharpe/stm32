@@ -10,7 +10,7 @@
 
 namespace OTA
 {
-	static constexpr size_t DataSize = 504;
+	static constexpr size_t DataSize = 512;
 	
 	enum MessageType : uint8_t
 	{
@@ -53,5 +53,5 @@ namespace OTA
 		uint16_t Reserved;
 		uint8_t Data[DataSize];
 	};
-	static_assert(sizeof(DataBlockMessage) == 512, "Keeping this 512");
+	static_assert(sizeof(DataBlockMessage) == 520, "Keeping this 512");
 }

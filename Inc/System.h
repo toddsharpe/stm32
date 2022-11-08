@@ -10,3 +10,9 @@ enum SystemMemoryMap
 	App = FLASH_BASE + 0x00040000U,
 	SysReserved = FLASH_BASE + 0x000C0000U
 };
+
+enum SystemSectors
+{
+	App1 = 5,
+	App2 = 6
+};

@@ -4,6 +4,7 @@
 #include "DataChannel.h"
 #include "System.h"
 #include "OTA.h"
+#include "stm32/Flash.h"
 
 using namespace OTA;
 class Updater
@@ -11,7 +12,7 @@ class Updater
 public:
 	static void OnDataReceived(void* arg, const size_t bytesAvailable) { ((Updater*)arg)->OnDataReceived(bytesAvailable); };
 
-	Updater(Board& board, Kernel& kernel, DataChannel& channel) : m_board(board), m_kernel(kernel), m_channel(channel), m_state(State::GetApp), m_event()
+	Updater(Board& board, Kernel& kernel, DataChannel& channel) : m_board(board), m_kernel(kernel), m_channel(channel), m_state(State::Init), m_event()
 	{
 		m_channel.DataReceived.Context = this;
 		m_channel.DataReceived.Handler = &Updater::OnDataReceived;
@@ -19,20 +20,42 @@ public:
 
 	void Run()
 	{
-		uint16_t numberOfBlocks;
+		uint16_t numberOfBlocks = 0;
 
-		while (m_state != State::Finished)
+		while (m_state != State::Faulted)
 		{
 			switch (m_state)
 			{
-				case State::GetApp:
-					GetApp(numberOfBlocks);
+				case State::Init:
+					m_state = State::GetAppInfo;
+					break;
+				
+				case State::GetAppInfo:
+					m_state = GetAppInfo(numberOfBlocks);
+					break;
+
+				case State::UnlockFlash:
+					Flash::Unlock();
+					m_state = State::ErashFlash;
+					break;
+
+				case State::ErashFlash:
+					Flash::EraseSector(SystemSectors::App1);
+					Flash::EraseSector(SystemSectors::App2);
+					m_state = State::GetAppData;
+					break;
+
+				case State::GetAppData:
+					m_state = GetAppData(numberOfBlocks);
+					break;
+
+				case State::LockFlash:
+					Flash::Lock();
 					m_state = State::BootApp;
 					break;
 
 				case State::BootApp:
-					BootApp();
-					m_state = State::Finished;
+					m_state = BootApp();
 					break;
 
 				default:
@@ -44,57 +67,75 @@ public:
 private:
 	enum class State
 	{
-		GetApp,
+		Init,
+		GetAppInfo,
+		UnlockFlash,
+		ErashFlash,
+		GetAppData,
+		LockFlash,
 		BootApp,
-		Finished
+		Faulted
 	};
 
-	void GetApp(uint16_t& numberOfBlocks)
+	State GetAppInfo(uint16_t& numberOfBlocks)
 	{
-		//Send request
+		m_board.Printf("GetAppInfo\r\n");
+		
+		GetAppMessage request = {};
+		request.Length = sizeof(GetAppMessage);
+		request.Type = MessageType::GetApp;
+
+		AppInfoMessage response = {};
+		if (!SendAndReceive(request, response))
+			return State::BootApp;
+
+		AssertEqual(response.Type, MessageType::AppInfo);
+		numberOfBlocks = response.NumberOfBlocks;
+		m_board.Printf("Blocks: %d\r\n", numberOfBlocks);
+
+		return State::UnlockFlash;
+	}
+
+	State GetAppData(uint16_t numberOfBlocks)
+	{
+		m_board.Printf("GetAppData\r\n");
+		
+		for (size_t i = 0; i < numberOfBlocks; i++)
 		{
-			GetAppMessage request = {};
-			request.Length = sizeof(GetAppMessage);
-			request.Type = MessageType::GetApp;
-
-			AppInfoMessage response = {};
-			if (!SendAndReceive(request, response))
-			{
-				return;
-			}
-			AssertEqual(response.Type, MessageType::AppInfo);
-
-			numberOfBlocks = response.NumberOfBlocks;
-			m_board.Printf("Blocks: %d\r\n", numberOfBlocks);
-		}
-
-		//for (size_t i = 0)
-		{
+			m_board.Printf("  Block: %d ", i);
+			
 			GetDataBlockMessage request = {};
 			request.Length = sizeof(GetDataBlockMessage);
 			request.Type = MessageType::GetDataBlock;
-			request.BlockNumber = 0;
+			request.BlockNumber = i;
 
 			DataBlockMessage response = {};
 			if (!SendAndReceive(request, response))
-			{
-				return;
-			}
+				return State::Faulted;
+			m_board.Printf("Received.\r\n");
+
 			AssertEqual(response.Type, MessageType::DataBlock);
 
-			m_board.PrintBytes((char*)&response.Data[0], 64);
+			//Write bytes
+			const uintptr_t address = (uintptr_t)SystemMemoryMap::App + (i * sizeof(response.Data));
+			const uint32_t* data = (uint32_t*)&response.Data[0];
+			m_board.Printf("  Writing at 0x%x\r\n", address);
+			for (size_t j = 0; j < sizeof(response.Data) / sizeof(uint32_t); j++)
+			{
+				Flash::WriteWord(address + j * sizeof(uint32_t), data[j]);
+			}
 		}
 
-		m_kernel.Sleep(5*1000);
-		m_board.Printf("booting app...\r\n");
+		return State::LockFlash;
 	}
 
-	void BootApp()
+	State BootApp()
 	{
+		m_board.Printf("BootApp\r\n");
 		ResetVectorTable* isr_vector = (ResetVectorTable*)SystemMemoryMap::App;
 		if (isr_vector->Reset >= SystemMemoryMap::App && isr_vector->Reset < SystemMemoryMap::SysReserved)
 		{
-			//Stop old kernel
+			//Stop existing kernel
 			m_kernel.Stop();
 			
 			AppMain main = (AppMain)isr_vector->Reset;
@@ -104,6 +145,7 @@ private:
 
 		//Boot app failed
 		m_board.Printf("App launch failed...\r\n");
+		return State::Faulted;
 	}
 
 	template<class TSend, class TReceive>
@@ -113,7 +155,6 @@ private:
 
 		while (m_channel.BytesAvailable() < sizeof(TReceive))
 		{
-			m_board.Printf("Bytes: %d\r\n", m_channel.BytesAvailable());
 			WaitStatus status = m_kernel.KeWait(m_event, 5*1000);
 			if (status == WaitStatus::Timeout)
 			{
