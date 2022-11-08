@@ -4,9 +4,9 @@ REM Erasing
 "%CUBE_BIN%\STM32_Programmer_CLI.exe" -c port=SWD -e all
 
 REM Flashing Bootloader
-"%CUBE_BIN%\STM32_Programmer_CLI.exe" -c port=SWD -w build\Bootloader\Bootloader.elf -v
+"%CUBE_BIN%\STM32_Programmer_CLI.exe" -c port=SWD -w build\Bootloader\Bootloader.bin 0x08000000 -v
 
 REM Flashing App
-"%CUBE_BIN%\STM32_Programmer_CLI.exe" -c port=SWD -w build\App\Nucleo.elf -v
+"%CUBE_BIN%\STM32_Programmer_CLI.exe" -c port=SWD -w build\App\Nucleo.bin 0x08040000 -v
 
 "%CUBE_BIN%\STM32_Programmer_CLI.exe" -c port=SWD -s

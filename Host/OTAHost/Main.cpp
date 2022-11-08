@@ -7,7 +7,9 @@
 #include <shlwapi.h>
 #include <RingBuffer.h>
 
-static const std::string app = "..\\..\\build\\App\\Nucleo.elf";
+static const std::string app = "..\\..\\build\\App\\Nucleo.bin";
+
+RingBuffer<uint8_t, 1024*1024> commBuffer;
 
 int main()
 {
@@ -37,7 +39,7 @@ int main()
 	std::vector<char>* appData = new std::vector<char>(std::istreambuf_iterator<char>(appFile), std::istreambuf_iterator<char>());
 	size_t numberOfBlocks = (appData->size() + (OTA::DataSize - 1)) / OTA::DataSize;
 
-	RingBuffer<uint8_t, 1024> commBuffer;
+	//TODO(tsharpe): Having a front pointer to a ring buffer is broken. For now, make it big.
 
 	//Enter loop
 	while (true)

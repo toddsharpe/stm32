@@ -31,12 +31,11 @@ RM0385 - 2.2.2
 Flash Memory on AXIM interface: 0x0800_0000 to 0x080F_FFFF (1MB)
 
 Solution Layout
-Bootloader - 64k
-Empty - 64k
-Empty - 64k
-Empty - 64k
-App - 512K (on 256k boundary)
-256k Empty
+Bootloader - 64k, Sector 0/1
+Empty - 64k, Sector 2/3
+Empty - 128k, Sector 4
+App - 512K (on 256k boundary), Sector 5/6
+Empty - 256k, Sector 7
 
 Therefore
 0x0800_0000 - 0x0801_0000 - Bootloader
