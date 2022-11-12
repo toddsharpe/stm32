@@ -4,6 +4,7 @@
 
 #include "stm32f746xx.h"
 #include "util/util.h"
+#include "DiscretePin.h"
 #include <stddef.h>
 #include <cstdint>
 
@@ -36,8 +37,8 @@ enum GpioSpeed
 {
 	Low = 0b00,
 	Medium = 0b01,
-	Fast = 0b10,
-	High = 0b11,
+	High = 0b10,
+	VeryHigh = 0b11,
 	GpioSpeedMask = High
 };
 
@@ -47,6 +48,7 @@ enum GpioAlternate
 	Usart1 = 7,
 	Usart2 = 7,
 	Usart3 = 7,
+	Spi1 = 5,
 	GpioAlternateMask = 0b1111
 };
 
@@ -62,8 +64,10 @@ struct GpioPinConfig
 static constexpr GpioPinConfig const GpioOutput = { .Mode = GpioMode::Output, .PullType = GpioPullType::None };
 static constexpr GpioPinConfig const GpioInput = { .Mode = GpioMode::Input, .PullType = GpioPullType::None };
 
-static constexpr GpioPinConfig const GpioUart2 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::High, .Alternate = GpioAlternate::Usart2 };
-static constexpr GpioPinConfig const GpioUart3 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::High, .Alternate = GpioAlternate::Usart3 };
+static constexpr GpioPinConfig const GpioUart2 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::VeryHigh, .Alternate = GpioAlternate::Usart2 };
+static constexpr GpioPinConfig const GpioUart3 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::VeryHigh, .Alternate = GpioAlternate::Usart3 };
+
+static constexpr GpioPinConfig const GpioSpi1 = {.Mode = GpioMode::Alternate, .OutputType = GpioOutputType::PushPull, .PullType = GpioPullType::None, .Speed = GpioSpeed::VeryHigh, .Alternate = GpioAlternate::Spi1 };
 
 constexpr GPIO_TypeDef* Port_A() {
   return GPIOA;
@@ -81,8 +85,20 @@ constexpr GPIO_TypeDef* Port_D() {
   return GPIOD;
 }
 
+constexpr GPIO_TypeDef* Port_E() {
+  return GPIOE;
+}
+
+constexpr GPIO_TypeDef* Port_F() {
+  return GPIOF;
+}
+
+constexpr GPIO_TypeDef* Port_G() {
+  return GPIOG;
+}
+
 template <GPIO_TypeDef* PORT(), size_t TPin>
-class GpioPin
+class GpioPin : public DiscretePin
 {
 public:
 	GpioPin()
@@ -90,8 +106,10 @@ public:
 
 	}
 
-	void Init(const GpioPinConfig& config)
+	void Init(const GpioPinConfig& config, const bool initValue = false)
 	{
+		Set(initValue);
+		
 		if (config.Mode == GpioMode::Output || config.Mode == GpioMode::Alternate)
 		{
 			SET_REG_FIELD(PORT()->OSPEEDR, TPin * 2, GpioSpeed::GpioSpeedMask, config.Speed);
@@ -111,23 +129,18 @@ public:
 		SET_REG_FIELD(PORT()->MODER, TPin * 2, GpioMode::GpioModeMask, config.Mode);
 	}
 
-	void Set(bool value)
+	virtual void Set(const bool value) override
 	{
 		PORT()->BSRR = (1 << (TPin + (value ? 0 : 16)));
 	}
 
-	bool Get()
+	virtual bool Get() override
 	{
 		return (PORT()->ODR & (1 << TPin)) != 0;
 	}
 
-	bool Read()
+	virtual bool Read() override
 	{
 		return (PORT()->IDR & (1 << TPin)) != 0;
-	}
-
-	void Toggle()
-	{
-		Set(!Get());
 	}
 };
