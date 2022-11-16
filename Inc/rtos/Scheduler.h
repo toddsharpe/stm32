@@ -148,6 +148,11 @@ public:
 		next->m_state = ThreadState::Running;
 	}
 
+	size_t GetThreadCount() const
+	{
+		return m_threads.size();
+	}
+
 private:
 	struct Wait
 	{

@@ -3,7 +3,7 @@
 #include "stm32/Usart.h"
 #include "Assert.h"
 
-Kernel::Kernel(Board& board) : m_board(board), m_sysTimer(TickFreq::TickFreq_10HZ), m_scheduler(m_sysTimer), m_interruptHandlers()
+Kernel::Kernel(Board& board) : m_board(board), m_sysTimer(TickFreq::TickFreq_100HZ), m_scheduler(m_sysTimer), m_interruptHandlers()
 {
 
 }

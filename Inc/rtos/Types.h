@@ -28,3 +28,9 @@ struct InterruptContext
 };
 
 typedef uint32_t milli_t;//Time in milliseconds
+
+struct KernelStats
+{
+	uint32_t Threads;
+	uint32_t SysTicks;
+};

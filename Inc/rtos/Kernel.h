@@ -32,6 +32,12 @@ public:
 	WaitStatus KeWait(KSignalObject& object, const milli_t timeout = std::numeric_limits<milli_t>::max());
 	void KeSignal(KEvent& event);
 
+	void GetStats(KernelStats& stats)
+	{
+		stats.Threads = m_scheduler.GetThreadCount();
+		stats.SysTicks = m_sysTimer.GetTicks();
+	}
+
 private:
 	static constexpr size_t DefaultStackSize = 4 * 1024;
 

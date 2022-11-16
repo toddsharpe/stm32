@@ -9,7 +9,7 @@ struct Callback
 
 	bool IsCallable()
 	{
-		return Context != nullptr && Handler != nullptr;
+		return Handler != nullptr;
 	}
 
 	void Invoke()
@@ -31,7 +31,7 @@ struct ParamCallback
 
 	bool IsCallable()
 	{
-		return Context != nullptr && Handler != nullptr;
+		return Handler != nullptr;
 	}
 
 	void Invoke(P param)
