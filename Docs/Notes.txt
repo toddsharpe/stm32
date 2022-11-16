@@ -52,4 +52,8 @@ https://www.segger.com/products/debug-probes/j-link/models/other-j-links/st-link
 https://www.segger.com/products/debug-probes/j-link/technology/about-real-time-transfer/
 
 Things to do
-Kernel wait/timeout
+
+
+References
+https://embeddedexpert.io/?p=474
+https://vivonomicon.com/2019/07/05/bare-metal-stm32-programming-part-9-dma-megamix/
