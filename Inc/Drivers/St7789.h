@@ -5,14 +5,13 @@
 #include "DiscretePin.h"
 #include "stm32/Spi.h"
 #include "stm32/DmaStream.h"
-#include "Graphics/GraphicsBuffer.h"
+#include "Graphics/FrameBuffer.h"
 #include "Assert.h"
 
 //TODO(tsharpe): Don't hardcode DMA2_STREAM3
 #include "stm32f746xx.h"
 
 extern void ThreadSleep(const milli_t ms);
-extern void RegisterInterrupt(const InterruptVector interrupt, const InterruptContext& context);
 
 //Framebuffer is sent via DMA, commands/simple data is sent with SPI polling.
 template<size_t Width, size_t Height>
@@ -21,11 +20,11 @@ class St7789
 public:
 	static void OnTransferComplete(void* arg) { ((St7789*)arg)->OnTransferComplete(); };
 
-	St7789(Spi& spi, DiscretePin& dcPin, DiscretePin& resetPin) :
+	St7789(Spi& spi, DmaStream& dmaStream, DiscretePin& dcPin, DiscretePin& resetPin) :
 		m_spi(spi),
+		m_dmaStream(dmaStream),
 		m_dcPin(dcPin),
 		m_resetPin(resetPin),
-		m_dmaStream(DMA2_Stream3, DMA2),
 		m_xOffset(0),
 		m_yOffset(0)
 	{
@@ -63,22 +62,21 @@ public:
 		SendCommand(Command::NORON);
 		ThreadSleep(10);
 		SendCommand(Command::DISPON);
-		ThreadSleep(500);
+		ThreadSleep(10);
 
-		m_dmaStream.Init(SPI1_TX_Stream3Channel3);
 		m_dmaStream.TransferComplete.Context = this;
 		m_dmaStream.TransferComplete.Handler = &St7789::OnTransferComplete;
 
-		RegisterInterrupt(m_dmaStream.GetInterupt(), {&DmaStream::OnInterrupt, &m_dmaStream});
 	}
 
-	void Write(GraphicsBuffer<Width, Height>& framebuffer)
+	void Write(Graphics::FrameBuffer& framebuffer)
 	{
 		//Set address
-		SetAddressWindow(0, 0, Width - 1, Height - 1);
-
-		AssertOp(Width * Height, <, DmaStream::MaxTransfer);
-		SendDataDMA((uint16_t*)framebuffer.GetAddress(), Width * Height);
+		SetAddressWindow(0, 0, framebuffer.GetWidth() - 1, framebuffer.GetHeight() - 1);
+		
+		const size_t cells = framebuffer.GetWidth() * framebuffer.GetHeight();
+		AssertOp(cells, <, DmaStream::MaxTransfer);
+		SendDataDMA((uint16_t*)framebuffer.GetBuffer(), cells);
 	}
 
 private:
@@ -193,10 +191,10 @@ private:
 	}
 
 	Spi& m_spi;
+	DmaStream& m_dmaStream;
 	DiscretePin& m_dcPin;
 	DiscretePin& m_resetPin;
 
-	DmaStream m_dmaStream;
 	KEvent m_event;
 
 	size_t m_xOffset;
