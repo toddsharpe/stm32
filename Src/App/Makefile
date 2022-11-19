@@ -41,7 +41,8 @@ system_stm32f7xx.c \
 ../Common/syscalls.c
 
 CXX_SOURCES = \
-main.cpp \
+Main.cpp \
+DisplayTask.cpp \
 ../Rtos/Kernel.cpp
 
 # ASM sources

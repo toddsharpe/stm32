@@ -23,12 +23,12 @@ namespace Graphics
 	namespace Colors
 	{
 		//To support 16bit transfers, colors were converted to little endian, bytes reversed.
-		static constexpr RGB565 White = {.AsUint16 = 0xFFFF };
-		static constexpr RGB565 Black = {.AsUint16 = 0x0000 };
-		static constexpr RGB565 Blue = {.AsUint16 = 0x1F00 };
-		static constexpr RGB565 Red = {.AsUint16 = 0x00F8 };
-		static constexpr RGB565 Magenta = {.AsUint16 = 0x1FF8 };
-		static constexpr RGB565 Green = {.AsUint16 = 0xE007 };
-		static constexpr RGB565 Cyan = {.AsUint16 = 0xFF7F };
+		static constexpr Color White = {.AsUint16 = 0xFFFF };
+		static constexpr Color Black = {.AsUint16 = 0x0000 };
+		static constexpr Color Blue = {.AsUint16 = 0x1F00 };
+		static constexpr Color Red = {.AsUint16 = 0x00F8 };
+		static constexpr Color Magenta = {.AsUint16 = 0x1FF8 };
+		static constexpr Color Green = {.AsUint16 = 0xE007 };
+		static constexpr Color Cyan = {.AsUint16 = 0xFF7F };
 	}
 }
