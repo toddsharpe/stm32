@@ -64,7 +64,7 @@ public:
 		{
 			KThread* thread = wait.Thread;
 			thread->m_waitStatus = WaitStatus::Signaled;
-			AddThread(thread);
+			thread->m_state = ThreadState::Ready;
 		}
 		m_signalWaits[&object].clear();
 		m_signalWaits.erase(&object);
@@ -82,7 +82,7 @@ public:
 		m_signalWaits[&object].pop_front();
 		KThread* thread = wait.Thread;
 		thread->m_waitStatus = WaitStatus::Signaled;
-		AddThread(thread);
+		thread->m_state = ThreadState::Ready;
 		return true;
 	}
 
