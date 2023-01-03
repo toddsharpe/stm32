@@ -57,3 +57,11 @@ Things to do
 References
 https://embeddedexpert.io/?p=474
 https://vivonomicon.com/2019/07/05/bare-metal-stm32-programming-part-9-dma-megamix/
+
+
+SiFive:
+https://wiki.osdev.org/HiFive-1_Bare_Bones
+
+
+Sifive Bringup notes
+* __libc_init_array calls _GLOBAL__sub_I__ZN9__gnu_cxx9__freeresEv, which calls malloc calls sbrk, allocations are 0 and then 0x948 before main is even called.
