@@ -17,28 +17,27 @@ OPT = -Og
 # paths
 #######################################
 # Build path
-BUILD_DIR = ../../build/App
+BUILD_DIR = ../../../build/SiFive/App
 
 ######################################
 # source
 ######################################
 # C sources
 C_SOURCES = \
-syscalls.c \
-synchronize_harts.c \
-init.c \
-sbrk.c
+../../Common/syscalls.c \
+../sysmem.c \
+../libmetal/synchronize_harts.c \
+../libmetal/init.c
 
 CXX_SOURCES = \
 main.cpp
 
 # ASM sources
 ASM_SOURCES = \
-crt0.s \
-entry.s \
-trap.s \
-scrub.s \
-
+../libgloss/crt0.s \
+../libmetal/entry.s \
+../libmetal/trap.s \
+../libmetal/scrub.s
 
 #######################################
 # binaries
@@ -108,7 +107,7 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--I../../Inc \
+-I../../../Inc \
 
 CXX_INCLUDES = $(C_INCLUDES) 
 

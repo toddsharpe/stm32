@@ -1,7 +1,7 @@
 /* Copyright 2019 SiFive Inc. */
 /* SPDX-License-Identifier: Apache-2.0 */
 
-#include "init.h"
+#include <sifive/libmetal/init.h>
 
 /*
  * These function pointers are created by the linker script

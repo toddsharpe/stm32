@@ -9,11 +9,12 @@
 #include <cstddef>
 #include <string>
 #include <cstring>
+#include <sifive/sifive_hifive1_revb.h>
 
 class Uart : public DataChannel, public StringPrinter
 {
 public:
-	Uart(void *uart) : m_uart((_uart *)uart)
+	Uart(sifive_uart0_0_Type *uart) : m_uart(uart)
 	{
 	}
 
@@ -26,10 +27,10 @@ public:
 	{
 		for (size_t i = 0; i < length; i++)
 		{
-			while (m_uart->TxData.Full) {};
-			m_uart->TxData.Data = buffer[i];
+			while (m_uart->txdata_b.full) {};
+			m_uart->txdata_b.data = buffer[i];
 		}
-		while (m_uart->TxData.Full) {};
+		while (m_uart->txdata_b.full) {};
 	}
 
 	virtual void Read(uint8_t *buffer, size_t length) override
@@ -43,27 +44,8 @@ public:
 	}
 
 private:
-	// MAN 18.3
-	struct uart_txdata
-	{
-		uint32_t Data : 8;
-		uint32_t Reserved : 23;
-		uint32_t Full : 1;
-	};
-
-	struct _uart
-	{
-		volatile uart_txdata TxData;
-		volatile uint32_t RxData;
-		volatile uint32_t TxCtrl;
-		volatile uint32_t RxCtrl;
-		volatile uint32_t IE;
-		volatile uint32_t IP;
-		volatile uint32_t Div;
-	};
-
 	static constexpr size_t BUFFER_SIZE = 1024;
 
-	_uart *m_uart;
+	sifive_uart0_0_Type *m_uart;
 	// RingBuffer<uint8_t, BUFFER_SIZE> m_buffer;
 };

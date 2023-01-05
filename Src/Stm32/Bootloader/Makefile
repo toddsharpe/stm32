@@ -13,7 +13,7 @@
 ######################################
 # target
 ######################################
-TARGET = Nucleo
+TARGET = Bootloader
 
 
 ######################################
@@ -29,7 +29,7 @@ OPT = -Og
 # paths
 #######################################
 # Build path
-BUILD_DIR = ../../build/App
+BUILD_DIR = ../../../build/stm32/Bootloader
 
 ######################################
 # source
@@ -37,17 +37,16 @@ BUILD_DIR = ../../build/App
 # C sources
 C_SOURCES =  \
 system_stm32f7xx.c \
-../Common/sysmem.c \
-../Common/syscalls.c
+../../Common/syscalls.c \
+../sysmem.c
 
 CXX_SOURCES = \
-Main.cpp \
-DisplayTask.cpp \
-../Rtos/Kernel.cpp
+main.cpp \
+../../Rtos/Kernel.cpp
 
 # ASM sources
 ASM_SOURCES =  \
-../Rtos/Interrupts.s \
+../../Rtos/Interrupts.s \
 startup_stm32f746zgtx.s
 
 
@@ -112,9 +111,9 @@ AS_INCLUDES =
 
 # C includes
 C_INCLUDES =  \
--I../../Inc \
--I../../External/cmsis_device_f7/Include \
--I../../External/CMSIS_5/CMSIS/Core/Include
+-I../../../Inc \
+-I../../../External/cmsis_device_f7/Include \
+-I../../../External/CMSIS_5/CMSIS/Core/Include
 
 CXX_INCLUDES = $(C_INCLUDES) \
 -I/usr/arm-none-eabi/include/c++/11.2.0

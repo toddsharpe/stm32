@@ -1,4 +1,4 @@
-#include "scrub.h"
+#include <sifive/libmetal/scrub.h>
 #include <sys/types.h>
 
 /* brk is handled entirely within the C library.  This limits METAL programs
